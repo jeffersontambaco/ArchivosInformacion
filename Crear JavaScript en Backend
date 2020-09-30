@@ -1,4 +1,5 @@
-##Estructura del Json	 
+ESTRUCTURA DEL JSON	 
+
 	 paymetez="{" +
 						   "let paymentCheckout = new PaymentCheckout.modal({"+
 					           "\"client_app_code\": \"TPP3-EC-CLIENT\"," +
@@ -35,10 +36,12 @@
 					            "paymentCheckout.close()" +
 					        "});" +
 					    "}";
+					    
+               return paymetez;
+	       
+ESTO SE DEBE LLAMAR POR AJAX MÉTODO POST
               
-              Esto se debe llamar a traves de ajax por post
-              
-              return paymetez;
+             
               
               	$.ajax({
 			url : App.CONTEXT_PATH + url_venta+"/obtenerReferencia",
@@ -59,4 +62,5 @@
 	
 		});
     
-    El método eval de javaScript permite ejecutar el string como javaScript
+ 
+    EL MÉTODO EVAL DE JAVASCRIPT PERMITE EJECUTAR EL STRING COMO JAVASCRIPT
