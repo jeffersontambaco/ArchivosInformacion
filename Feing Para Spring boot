@@ -228,3 +228,8 @@ public class VentaPaqueteController {
 	}
 	
 }
+
+
+ws.d2c.site.url= http://localhost:9000/efx-app-ws-d2c-site
+
+*********************************************************
