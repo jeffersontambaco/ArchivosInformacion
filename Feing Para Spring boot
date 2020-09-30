@@ -1,0 +1,230 @@
+*********************************************************************
+
+package pe.com.equifax.d2c.venta.client;
+
+import org.springframework.web.bind.annotation.RequestBody;
+
+import feign.Headers;
+import feign.Param;
+import feign.RequestLine;
+import pe.com.equifax.d2c.PasarelaPaymentez.Bean.PaymentezPayDTO;
+import pe.com.equifax.d2c.bean.BaseResponseBean;
+import pe.com.equifax.d2c.venta.bean.VentaPaqueteBean;
+
+
+@Headers("Accept: application/json")
+public interface VentaPaqueteClient {
+	
+	@RequestLine("GET /venta/paquete/obtenerPaquete/{codPaquete}")
+	@Headers("Content-Type: application/json")
+    public BaseResponseBean obtenerPaquete(@Param("codPaquete") String codPaquete);
+
+	@RequestLine("POST /venta/paquete/registrarVenta/{token}")
+	@Headers("Content-Type: application/json")
+	public BaseResponseBean registrarVenta(VentaPaqueteBean ventaPaquete, @Param("token") String token);
+	
+	@RequestLine("POST /venta/paquete/registrarVentaPersona")
+	@Headers("Content-Type: application/json")
+	public BaseResponseBean registrarVentaPersona(VentaPaqueteBean ventaPaquete);
+	
+	@RequestLine("POST /venta/paquete/registrarVentaPersonaInicial")
+	@Headers("Content-Type: application/json")
+	public BaseResponseBean registrarVentaPersonaInicial(VentaPaqueteBean ventaPaquete);
+	
+	@RequestLine("POST /venta/paquete/envioReporteRegistro/{usuarioId}")
+	@Headers("Content-Type: application/json")
+	public BaseResponseBean envioReporteRegistro(VentaPaqueteBean ventaPaquete, @Param("usuarioId") String usuarioId);
+
+//	@RequestLine("POST /venta/paquete/alertaFreemiumRegistro/{usuarioId}")
+//	@Headers("Content-Type: application/json")
+//	public BaseResponseBean alertaFreemiumRegistro(VentaPaqueteBean ventaPaquete, @Param("usuarioId") String usuarioId);
+	
+	@RequestLine("GET /venta/paquete/obtenerVenta/{codPersona}")
+	@Headers("Content-Type: application/json")
+	public BaseResponseBean obtenerVentaPorPersona(@Param("codPersona") String codPersona);
+	
+	@RequestLine("GET /venta/paquete/obtenerVentaPorToken/{token}")
+	@Headers("Content-Type: application/json")
+	public BaseResponseBean obtenerVentaPorToken(@Param("token") String token);
+	
+	@RequestLine("GET /venta/paquete/obtenerPersona/{codPersona}")
+	@Headers("Content-Type: application/json")
+	public BaseResponseBean obtenerPersona( @Param("codPersona") String codPersona);
+	
+	@RequestLine("GET /venta/paquete/validarCompra/{codigoAutogenerado}/{numDocumento}")
+	@Headers("Content-Type: application/json")
+	public BaseResponseBean validarCompra(@Param("codigoAutogenerado") String codigoAutogenerado,@Param("numDocumento") String numDocumento);
+
+	@RequestLine("POST /venta/paquete/compraPaymentez")
+	@Headers("Content-Type: application/json")
+	public BaseResponseBean compraPaymentez(PaymentezPayDTO paymentezPayDTO);
+}
+
+
+ 
+  
+  @Override
+	public PaymentezPayResponseDTO pagoPaymentez(PaymentezPayDTO paymentezPayDTO) {
+		PaymentezPayResponseDTO paymentezPayResponseDTO;
+		VentaPaqueteClient ventaPaqueteCliente = feignFactory.buildClient(VentaPaqueteClient.class,
+				accessControlProperties.getUrlD2CWS());
+		BaseResponseBean response = ventaPaqueteCliente.compraPaymentez(paymentezPayDTO);
+		if (ComponentsConstants.COD_RESPONSE_OK.equals(response.getCodigo())) {
+			paymentezPayResponseDTO = objectMapper.convertValue(response.getObjectRespuesta(),
+					PaymentezPayResponseDTO.class);
+		} else {
+			paymentezPayResponseDTO = null;
+		}
+		return paymentezPayResponseDTO;
+	}
+  
+  
+  
+  package pe.com.equifax.ws.venta.view.rest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import feign.Param;
+import pe.com.equifax.ws.common.utils.Constantes;
+import pe.com.equifax.ws.infrastructure.BaseResponseBean;
+import pe.com.equifax.ws.infrastructure.persistencia.jpa.dto.LogIdValidator;
+import pe.com.equifax.ws.venta.view.facade.VentaPaqueteServiceFacade;
+import pe.com.equifax.ws.venta.view.facade.dto.AuditoriaDTO;
+import pe.com.equifax.ws.venta.view.facade.dto.LogIdValidatorDTO;
+import pe.com.equifax.ws.venta.view.facade.dto.PaymentezPayDTO;
+import pe.com.equifax.ws.venta.view.facade.dto.VentaPaqueteDTO;
+
+@RestController
+@RequestMapping("venta/paquete")
+public class VentaPaqueteController {
+
+	@Autowired
+	VentaPaqueteServiceFacade ventaPaqueteService;
+
+	@GetMapping({ "obtenerPersona/{codPersona}" })
+	public BaseResponseBean obtenerPersona(@PathVariable("codPersona") final String codPersona) {
+		BaseResponseBean baseResponseBean = new BaseResponseBean();
+		baseResponseBean.setCodigo("1000");
+		baseResponseBean = this.ventaPaqueteService.obtenerPersona(codPersona);
+		return baseResponseBean;
+	}
+
+	@GetMapping("obtenerPaqueteRelacionado/{codPaquete}")
+	public BaseResponseBean obtenerPaqueteRelacionado(@PathVariable("codPaquete") String codPaquete) {
+		BaseResponseBean baseResponseBean = new BaseResponseBean();
+		baseResponseBean.setCodigo(Constantes.COD_GENERAL_OK);
+		baseResponseBean = ventaPaqueteService.obtenerPaqueteRelacionado(codPaquete);
+		return baseResponseBean;
+	}
+
+	/*
+	 * Metodo para obtener paquete en el registro venta
+	 */
+	@GetMapping("obtenerPaquete/{codPaquete}")
+	public BaseResponseBean obtenerPaquete(@PathVariable("codPaquete") String codPaquete) {
+		BaseResponseBean baseResponseBean = new BaseResponseBean();
+		baseResponseBean = ventaPaqueteService.obtenerPaquete(codPaquete);
+		return baseResponseBean;
+	}
+
+	@PostMapping("registrarVenta/{token}")
+	public BaseResponseBean registrarVenta(@RequestBody VentaPaqueteDTO ventaPaqueteDTO,
+			@PathVariable("token") String token) {
+		BaseResponseBean baseResponseBean = new BaseResponseBean();
+		baseResponseBean = ventaPaqueteService.registrarVenta(ventaPaqueteDTO, token);
+		return baseResponseBean;
+	}
+
+	/*
+	 * Metodo para registrar la venta
+	 */
+	@PostMapping("registrarVentaPersona")
+	public BaseResponseBean registrarVentaPersona(@RequestBody VentaPaqueteDTO ventaPaqueteDTO) {
+		BaseResponseBean baseResponseBean = new BaseResponseBean();
+		baseResponseBean = ventaPaqueteService.registrarVentaPersona(ventaPaqueteDTO);
+		return baseResponseBean;
+	}
+
+	/*
+	 * Metodo para registrar la venta inicial
+	 */
+	@PostMapping("registrarVentaPersonaInicial")
+	public BaseResponseBean registrarVentaPersonaInicial(@RequestBody VentaPaqueteDTO ventaPaqueteDTO) {
+		BaseResponseBean baseResponseBean = new BaseResponseBean();
+		baseResponseBean = ventaPaqueteService.registrarVentaPersonaInicial(ventaPaqueteDTO);
+		return baseResponseBean;
+	}
+
+	@PostMapping("envioReporteRegistro/{usuarioId}")
+	public BaseResponseBean envioReporteRegistro(@RequestBody VentaPaqueteDTO ventaPaqueteDTO,
+			@PathVariable("usuarioId") String usuarioId) {
+		BaseResponseBean baseResponseBean = new BaseResponseBean();
+		baseResponseBean = ventaPaqueteService.envioReporteRegistro(ventaPaqueteDTO, usuarioId);
+		return baseResponseBean;
+	}
+
+	@PostMapping("envioReporteMensual/{usuarioId}/{vtaReporteId}/{codigoPaquete}")
+	public BaseResponseBean envioReporteMensual(@PathVariable("usuarioId") String usuarioId,
+			@PathVariable("vtaReporteId") String vtaReporteId, @PathVariable("codigoPaquete") String codigoPaquete) {
+		System.out.println("####################ENTRO AL ENVIO REPORTE MENSUAL");
+		BaseResponseBean baseResponseBean = new BaseResponseBean();
+		baseResponseBean = ventaPaqueteService.envioReporteMensual(usuarioId, vtaReporteId, codigoPaquete);
+		return baseResponseBean;
+	}
+
+	@GetMapping("obtenerVenta/{codPersona}")
+	public BaseResponseBean obtenerVentaPorPersona(@PathVariable("codPersona") String codPersona) {
+		BaseResponseBean baseResponseBean = new BaseResponseBean();
+		ventaPaqueteService.obtenerVentaPorPersona(codPersona);
+		return baseResponseBean;
+	}
+
+	@GetMapping("obtenerUltimoReportePersonalPorToken/{token}")
+	public BaseResponseBean obtenerUltimoReportePersonalPorToken(@PathVariable("token") String token) {
+		BaseResponseBean baseResponseBean = new BaseResponseBean();
+		ventaPaqueteService.obtenerUltimoReportePersonalPorToken(token);
+		return baseResponseBean;
+	}
+
+	@GetMapping("obtenerVentaPorToken/{token}")
+	public BaseResponseBean obtenerVentaPorToken(@PathVariable("token") String token) {
+		BaseResponseBean baseResponseBean = new BaseResponseBean();
+		ventaPaqueteService.obtenerVentaPorToken(token);
+		return baseResponseBean;
+	}
+
+	@GetMapping("obtenerUltimaVentaReportexToken/{token}")
+	public BaseResponseBean obtenerUltimaVentaReportexToken(@PathVariable("token") String token) {
+		BaseResponseBean baseResponseBean = new BaseResponseBean();
+		ventaPaqueteService.obtenerUltimaVentaReportexToken(token);
+		return baseResponseBean;
+	}
+
+	@GetMapping("obtenerCantidadAlertasxToken/{token}")
+	public BaseResponseBean obtenerCantidadAlertasxToken(@PathVariable("token") String token) {
+		BaseResponseBean baseResponseBean = new BaseResponseBean();
+		ventaPaqueteService.obtenerCantidadAlertasxToken(token);
+		return baseResponseBean;
+	}
+
+	@GetMapping("validarCompra/{codigoAutogenerado}/{numDocumento}")
+	public BaseResponseBean validarCompra(@PathVariable("codigoAutogenerado") String codigoAutogenerado,@PathVariable("numDocumento") String numDocumento) {
+		BaseResponseBean baseResponseBean = new BaseResponseBean();
+		baseResponseBean = ventaPaqueteService.validarCompra(codigoAutogenerado, numDocumento);
+		return baseResponseBean;
+	}
+	
+	@PostMapping("compraPaymentez")
+	public BaseResponseBean compraPaymentez(@RequestBody PaymentezPayDTO  paymentezPayDTO) {
+		BaseResponseBean baseResponseBean = new BaseResponseBean();
+		baseResponseBean = ventaPaqueteService.compraPaymentez(paymentezPayDTO);
+		return baseResponseBean;
+	}
+	
+}
