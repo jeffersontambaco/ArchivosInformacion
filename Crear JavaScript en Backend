@@ -1,0 +1,62 @@
+	 paymetez="{" +
+							"let paymentCheckout = new PaymentCheckout.modal({"+
+					        
+					            "\"client_app_code\": \"TPP3-EC-CLIENT\"," +
+					            "\"client_app_key\": \"ZfapAKOk4QFXheRNvndVib9XU3szzg\"," +
+					            "\"locale\": \"'es'\"," +
+					            "\"env_mode\": \"'stg'\"," +
+					            "\"onOpen\": function() {"+
+					            "$('#headerPrincipal').hide();"+
+								"},"+
+					            "\"onClose\": function() {"+
+					            "$('#headerPrincipal').show();"+
+								"},"+
+					            "\"onResponse\": function(response) {"+
+								"var comprobante = getDatosComprobante(response);"+
+					            "let redirect=ventaService.establecerPagoSession(comprobante);"+
+								"window.location.href = redirect;"+
+					            "console.log(response)"+
+					            "}"+
+					            "});"+
+					            
+					        "paymentCheckout.open({" +
+					            "\"user_id\": \""+numDocumento+"\"," +
+					            "\"user_email\": \""+ePersonaBean1.getCorreoPrincipal()+"\"," +
+					            "\"user_phone\": \""+ePersonaBean1.getCelular()+"\"," +
+					            "\"order_description\": \""+descripcionProducto+"\"," +
+					            "\"order_amount\": "+Double.valueOf(df2.format(totalMasIva))+"," +
+					            "\"order_vat\": "+Double.valueOf(df2.format(ivaProducto))+"," +
+					            "\"order_reference\": \""+paymentezBeanValidar.getReferencia()+"\"," +
+					            "\"order_installments_type\": 0," +
+					            "\"order_taxable_amount\":"+Double.valueOf(df2.format(subTotal))+"," +
+					            "\"order_tax_percentage\": "+ivaValor+"" +
+					        "});" +
+					        "window.addEventListener('popstate', function() {" +
+					            "paymentCheckout.close()" +
+					        "});" +
+					    "}";
+              
+              Esto se debe llamar a traves de ajax por post
+              
+              return paymetez;
+              
+              	$.ajax({
+			url : App.CONTEXT_PATH + url_venta+"/obtenerReferencia",
+			type : "GET",
+			async: false,
+			cache : false			
+		}).done(function( data, textStatus, jqXHR ) {
+			eval(data);
+		}).fail(function(jqXHR, textStatus) {
+			
+			if(jqXHR.status != 401){
+				try {
+					var json = JSON.parse(jqXHR.responseText);
+					showMessageUUID(json.message, json.uuid);
+				} catch (e) {
+				}
+			}
+	
+		});
+    
+    el metodo eval de javaScript permite ejecutar el string como javaScript
