@@ -1,5 +1,6 @@
+##Estructura del Json	 
 	 paymetez="{" +
-							"let paymentCheckout = new PaymentCheckout.modal({"+
+						   "let paymentCheckout = new PaymentCheckout.modal({"+
 					           "\"client_app_code\": \"TPP3-EC-CLIENT\"," +
 					            "\"client_app_key\": \"ZfapAKOk4QFXheRNvndVib9XU3szzg\"," +
 					            "\"locale\": \"'es'\"," +
