@@ -1,0 +1,43 @@
+url.Envio.Reporte = http://localhost:1985/wsEnvioReporteECO/enviarReporte
+
+@Value("${url.Envio.Reporte}")
+String urlEnvioReporte;
+  
+  
+  
+  public GeneratePdfDTO enviarReporteWS(EnviarReporteRequestDTO enviarReporteRequestDTO) {
+		GeneratePdfDTO generatePdfDTO = new GeneratePdfDTO();
+		CloseableHttpClient httpClient = null;
+		TrustStrategy acceptingTrustStrategy = (chain, authType) -> true;
+		try {
+			SSLContext sslContext = SSLContexts.custom().loadTrustMaterial(null, acceptingTrustStrategy).build();
+			SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
+			httpClient = HttpClients.custom().setSSLSocketFactory(csf).build();
+			HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+			requestFactory.setHttpClient(httpClient);
+			RestTemplate restTemplate = new RestTemplate(requestFactory);
+			HttpEntity<EnviarReporteRequestDTO> request = new HttpEntity(enviarReporteRequestDTO);
+			TimeUnit.SECONDS.sleep(5L);
+			ResponseEntity<GeneratePdfResponseDTO> wsResponse = restTemplate.postForEntity(urlEnvioReporte, request,
+					GeneratePdfResponseDTO.class);
+			if (HttpStatus.OK.toString().equals(((GeneratePdfResponseDTO) wsResponse.getBody()).getCodigo())) {
+				generatePdfDTO = ((GeneratePdfResponseDTO) wsResponse.getBody()).getObjectRespuesta();
+				LOGGERC.info("**************REPORTE CREADO**************");
+			} else {
+				LOGGERC.info("**************ERROR REPORTE NO CREADO**************");
+				LOGGERC.info(wsResponse.getBody().getMensaje());
+				generatePdfDTO = null;
+			}
+
+		} catch (Exception e) {
+			LOGGERC.info("**************ERROR REPORTE NO CREADO **************");
+			LOGGERC.error(e.getMessage());
+			generatePdfDTO = null;
+		} finally {
+			safeClose(httpClient);
+		}
+		return generatePdfDTO;
+
+	}
+  
+  ***********************Este método es para una sola url un solo método **********************
