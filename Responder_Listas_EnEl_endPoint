@@ -1,0 +1,47 @@
+--------------------------EN EL WS------------------
+
+	@Override
+	public BaseResponseBean obtenerVentaPorPersona(String codPersona) {
+		BaseResponseBean baseResponseBean = new BaseResponseBean();
+
+		try {
+			EPersona persona = new EPersona();
+			persona.setId(new Long(codPersona));
+			List<VentaPaquete> ventaPaquetes = this.ventaPaqueteRepository.findByPersonaOrderByIdDesc(persona);
+			baseResponseBean.setCodigo(Constantes.COD_GENERAL_OK);
+			baseResponseBean.setObjectRespuesta(ventaPaquetes);
+		} catch (Exception e) {
+			baseResponseBean.setCodigo(Constantes.COD_GENERAL_ERROR);
+			baseResponseBean.addMessaggeError(Constantes.MSG_GENERAL_ERROR_INTERNO);
+		}
+
+		return baseResponseBean;
+	}
+  
+  
+  	@GetMapping("obtenerVenta/{codPersona}")
+	public BaseResponseBean obtenerVentaPorPersona(@PathVariable("codPersona") String codPersona) {
+		BaseResponseBean baseResponseBean = new BaseResponseBean();
+		ventaPaqueteService.obtenerVentaPorPersona(codPersona);
+		return baseResponseBean;
+	}
+  
+  
+  ********************************EN EL WEB**************
+  	@Override
+	public List<VentaPaqueteBean> obtenerVentaPorPersona(String codPersona) {
+		VentaPaqueteClient ventaPaqueteClient = feignFactory.buildClient(VentaPaqueteClient.class,
+				accessControlProperties.getUrlD2CWS());
+		List<VentaPaqueteBean> ventas;
+		BaseResponseBean response = ventaPaqueteClient.obtenerVentaPorPersona(codPersona);
+
+		if (ComponentsConstants.COD_RESPONSE_OK.equals(response.getCodigo())) {
+			ventas = objectMapper.convertValue(response.getObjectRespuesta(),
+					new TypeReference<List<VentaPaqueteBean>>() {
+					});
+		} else {
+			ventas = null;
+		}
+
+		return ventas;
+	}
