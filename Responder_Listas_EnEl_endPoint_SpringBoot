@@ -45,3 +45,17 @@
 
 		return ventas;
 	}
+
+****************************Estructura Dto*********************
+		@Data
+		@JsonIgnoreProperties(ignoreUnknown = true)
+		public class TblGcOportunidadFiltroDto  implements Serializable{
+
+			private static final long serialVersionUID= 1L;
+
+			private Long numeroOportunidad;
+			private String nombreCliente;
+			private String nombreAm;
+			private String nombrePreventa;
+
+		}
